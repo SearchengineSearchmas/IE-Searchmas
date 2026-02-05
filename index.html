@@ -13,18 +13,8 @@ html,body {
   font-family:Arial,sans-serif;
   background:#ff0000; /* flat red background */
 }
-
-#home {
-  min-height:100vh;
-  text-align:center;
-  padding-top:100px;
-}
-
-.logo {
-  font-size:48px;
-  font-weight:bold;
-  line-height:1.2;
-}
+#home {min-height:100vh;text-align:center;padding-top:100px;}
+.logo {font-size:48px;font-weight:bold;line-height:1.2;}
 .logo span:nth-child(1){color:#4285f4}
 .logo span:nth-child(2){color:#ff9800}
 .logo span:nth-child(3){color:#fbbc05}
@@ -34,58 +24,16 @@ html,body {
 .logo span:nth-child(7){color:#fbbc05}
 .logo span:nth-child(8){color:#4285f4}
 .logo span:nth-child(9){color:#34a853}
-
-.search-box {
-  max-width:580px;
-  width:90%;
-  margin:auto;
-}
-input {
-  width:100%;
-  padding:10px;
-  font-size:16px;
-  border:1px solid #dfe1e5;
-}
-
-#results {
-  display:none;
-  max-width:800px;
-  margin:auto;
-  padding:15px;
-}
-.back {
-  cursor:pointer;
-  font-size:22px;
-  margin-bottom:8px;
-}
-
-.tabs {
-  margin:15px 0;
-  border-bottom:1px solid #ddd;
-}
-.tab {
-  cursor:pointer;
-  color:#5f6368;
-  padding:8px;
-  display:inline-block;
-}
-.tab.active {
-  color:#1a73e8;
-  border-bottom:3px solid #1a73e8;
-}
-
-.card {
-  background:#fff;
-  border:1px solid #ccc;
-  padding:10px;
-  margin:10px 0;
-  text-decoration:none;
-  color:#000;
-  display:block;
-}
+.search-box{max-width:580px;width:90%;margin:auto;}
+input{width:100%;padding:10px;font-size:16px;border:1px solid #dfe1e5;}
+#results{display:none;max-width:800px;margin:auto;padding:15px;}
+.back{cursor:pointer;font-size:22px;margin-bottom:8px;}
+.tabs{margin:15px 0;border-bottom:1px solid #ddd;}
+.tab{cursor:pointer;color:#5f6368;padding:8px;display:inline-block;}
+.tab.active{color:#1a73e8;border-bottom:3px solid #1a73e8;}
+.card{background:#fff;border:1px solid #ccc;padding:10px;margin:10px 0;text-decoration:none;color:#000;display:block;}
 </style>
 </head>
-
 <body>
 
 <div id="home">
@@ -100,13 +48,11 @@ input {
 <div id="results">
   <div class="back" onclick="goHome()">⬅ Back</div>
   <input id="qTop">
-
   <div class="tabs">
     <div class="tab active" data-tab="all">All</div>
     <div class="tab" data-tab="images">Images</div>
     <div class="tab" data-tab="news">News</div>
   </div>
-
   <div id="content"></div>
 </div>
 
@@ -124,7 +70,6 @@ function startSearch(e){
   if(!q) return;
   showResults(q);
 }
-
 qTop.onkeydown=function(e){
   if(e.keyCode===13){
     e.preventDefault();
@@ -133,7 +78,6 @@ qTop.onkeydown=function(e){
     search();
   }
 };
-
 var tabs=document.querySelectorAll(".tab");
 for(var i=0;i<tabs.length;i++){
   tabs[i].onclick=function(){
@@ -143,35 +87,50 @@ for(var i=0;i<tabs.length;i++){
     search();
   };
 }
-
 function showResults(q){
   homeEl.style.display="none";
   resEl.style.display="block";
   qTop.value=q;
   search();
 }
-
 function goHome(){
   resEl.style.display="none";
   homeEl.style.display="block";
 }
-
 function card(text,url){
   return '<a class="card" href="'+url+'" target="_blank">'+text+'</a>';
 }
-
 function search(){
   var q=qTop.value;
   if(!q) return;
   var enc=encodeURIComponent(q);
+  content.innerHTML="Loading...";
 
   if(tab==="all"){
-    // Direct DuckDuckGo HTML results page
-    content.innerHTML=card("DuckDuckGo Results","https://duckduckgo.com/html/?q="+enc);
+    var xhr=new XMLHttpRequest();
+    xhr.open("GET","https://duckduckgo.com/html/?q="+enc,true);
+    xhr.onreadystatechange=function(){
+      if(xhr.readyState===4){
+        if(xhr.status===200){
+          var doc=new DOMParser().parseFromString(xhr.responseText,"text/html");
+          var results=doc.querySelectorAll(".result__body");
+          if(!results.length){content.innerHTML="No results found.";return;}
+          var html="";
+          for(var i=0;i<Math.min(10,results.length);i++){
+            var a=results[i].querySelector(".result__a");
+            var s=results[i].querySelector(".result__snippet");
+            html+='<a class="card" href="'+a.href+'" target="_blank"><strong>'+a.textContent+'</strong><br>'+(s?s.textContent:"")+'</a>';
+          }
+          content.innerHTML=html;
+        } else {
+          content.innerHTML="Error loading results.";
+        }
+      }
+    };
+    xhr.send();
   }
 
   if(tab==="images"){
-    // Bing Images link
     content.innerHTML=card("Search Bing Images for '"+q+"'","https://www.bing.com/images/search?q="+enc);
   }
 
