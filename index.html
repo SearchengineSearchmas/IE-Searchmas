@@ -169,23 +169,41 @@ function search(){
   content.innerHTML="Loading...";
 
   if(tab==="all"){
-    var xhr=new XMLHttpRequest();
-    xhr.open("GET","https://api.allorigins.win/get?url="+encodeURIComponent("https://duckduckgo.com/html/?q="+enc));
-    xhr.onload=function(){
-      try{
-        var d=JSON.parse(xhr.responseText);
-        var doc=new DOMParser().parseFromString(d.contents,"text/html");
-        var results=doc.querySelectorAll(".result__body");
-        if(!results.length){content.innerHTML="No results found.";return;}
-        var html="";
-        for(var i=0;i<Math.min(10,results.length);i++){
-          var a=results[i].querySelector(".result__a");
-          var s=results[i].querySelector(".result__snippet");
-          html+=card("<strong>"+a.textContent+"</strong><br>"+(s?s.textContent:""),a.href);
-        }
-        content.innerHTML=html;
-      }catch(e){content.innerHTML="Error loading results.";}
-    };
+  var xhr = new XMLHttpRequest();
+  xhr.open(
+    "GET",
+    "https://api.allorigins.win/get?url=" +
+    encodeURIComponent("https://duckduckgo.com/lite/?q=" + enc)
+  );
+
+  xhr.onreadystatechange = function(){
+    if(xhr.readyState !== 4) return;
+
+    try{
+      var data = JSON.parse(xhr.responseText).contents;
+
+      // ultra-light parsing (IE friendly)
+      var blocks = data.split('<a rel="nofollow" class="result-link"');
+      var html = "";
+
+      for(var i=1;i<blocks.length && i<=10;i++){
+        var part = blocks[i];
+
+        var href = part.split('href="')[1].split('"')[0];
+        var title = part.split(">")[1].split("<")[0];
+
+        html += card("<strong>"+title+"</strong>", href);
+      }
+
+      content.innerHTML = html || "No results found.";
+    }catch(e){
+      content.innerHTML = "Failed to load results.";
+    }
+  };
+
+  xhr.send();
+}
+
     xhr.send();
   }
 
