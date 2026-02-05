@@ -108,20 +108,23 @@ function search(){
 
   if(tab==="all"){
     var xhr=new XMLHttpRequest();
-    xhr.open("GET","https://duckduckgo.com/html/?q="+enc,true);
+    xhr.open("GET","https://api.allorigins.win/get?url="+encodeURIComponent("https://duckduckgo.com/html/?q="+enc),true);
     xhr.onreadystatechange=function(){
       if(xhr.readyState===4){
         if(xhr.status===200){
-          var doc=new DOMParser().parseFromString(xhr.responseText,"text/html");
-          var results=doc.querySelectorAll(".result__body");
-          if(!results.length){content.innerHTML="No results found.";return;}
-          var html="";
-          for(var i=0;i<Math.min(10,results.length);i++){
-            var a=results[i].querySelector(".result__a");
-            var s=results[i].querySelector(".result__snippet");
-            html+='<a class="card" href="'+a.href+'" target="_blank"><strong>'+a.textContent+'</strong><br>'+(s?s.textContent:"")+'</a>';
-          }
-          content.innerHTML=html;
+          try{
+            var d=JSON.parse(xhr.responseText);
+            var doc=new DOMParser().parseFromString(d.contents,"text/html");
+            var results=doc.querySelectorAll(".result__body");
+            if(!results.length){content.innerHTML="No results found.";return;}
+            var html="";
+            for(var i=0;i<Math.min(10,results.length);i++){
+              var a=results[i].querySelector(".result__a");
+              var s=results[i].querySelector(".result__snippet");
+              html+='<a class="card" href="'+a.href+'" target="_blank"><strong>'+a.textContent+'</strong><br>'+(s?s.textContent:"")+'</a>';
+            }
+            content.innerHTML=html;
+          }catch(e){content.innerHTML="Error parsing results.";}
         } else {
           content.innerHTML="Error loading results.";
         }
