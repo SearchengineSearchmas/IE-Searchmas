@@ -74,11 +74,6 @@ input {
   border-bottom:3px solid #1a73e8;
 }
 
-iframe {
-  width:100%;
-  height:600px;
-  border:1px solid #ccc;
-}
 .card {
   background:#fff;
   border:1px solid #ccc;
@@ -171,8 +166,8 @@ function search(){
   var enc=encodeURIComponent(q);
 
   if(tab==="all"){
-    // Direct DuckDuckGo HTML results
-    content.innerHTML='<iframe src="https://duckduckgo.com/html/?q='+enc+'"></iframe>';
+    // Direct DuckDuckGo HTML results page
+    content.innerHTML=card("DuckDuckGo Results","https://duckduckgo.com/html/?q="+enc);
   }
 
   if(tab==="images"){
